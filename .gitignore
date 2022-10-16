@@ -162,3 +162,10 @@ cython_debug/
 # project-specific
 /aclImdb
 # aclImdb.zip
+TP_Sentiment_Analysis_DS_telecom_20-TOGASHI_Julia.ipynb
+TP_Sentiment_Analysis_DS_telecom_20-Students_raw.ipynb
+raw.ipynb
+.gitignore
+TOGASHI_Julia.ipynb
+
+*/*.pdf
