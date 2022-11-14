@@ -168,3 +168,4 @@ raw.ipynb
 .gitignore
 
 */*.pdf
+**/*.json
