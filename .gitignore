@@ -1,6 +1,8 @@
 */*.pdf
 **/*.pt
 **/*data
+**/*datasets
+**/*.txt
 
 **/*.zip
 __pycache__
