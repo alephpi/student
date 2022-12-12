@@ -136,3 +136,5 @@ ui-tests/playwright-report
 *.zip
 *.data
 *.arff
+# *kafka*
+*.code-workspace*
