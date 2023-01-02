@@ -3,10 +3,8 @@ Repo for reproducing [Adapting Neural Models with Sequential Monte Carlo Dropout
 
 ## TODO
 
-- [ ] Define the problem
-- [ ] Give naive dropout architecture
-- [ ] Experiment on 4.1
-- [ ] Reproduce 4.2
-- [ ] Challenge 4.3
-- [ ] Report
-- [ ] Bibliography
+- [x] Define the problem
+- [x] Give naive dropout architecture
+- [x] Experiment on 4.1
+- [x] Report
+- [x] Bibliography
