@@ -43,6 +43,3 @@ class VAELit(pl.LightningModule):
 	def configure_optimizers(self):
 		optimizer = optim.Adam(self.parameters(), lr=1e-3)
 		return optimizer
-	
-	def on_after_backward(self) -> None:
-		detect_nan_parameters(self.model)

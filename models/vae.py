@@ -53,7 +53,7 @@ class VanillaVAE(BaseVAE):
     def encode(self, x: Tensor) -> Tuple[Tensor]:
         h = self.encoder(x)
         mu = self.fc_mu(F.leaky_relu(h))
-        logsd  = self.fc_logsd(F.leaky_relu(h))
+        logsd  = self.fc_logsd(h)
         return mu, logsd # mean & log standard deviation of q(z|x)
     
     def reparameterize(self, mu: Tensor, logsd: Tensor) -> Tensor:
@@ -82,12 +82,12 @@ class VanillaVAE(BaseVAE):
         # why reduction is sum not mean?
         # bce is not symmetric, first should be a distribution and second is one-hot.
         recons_loss = F.binary_cross_entropy(x_re, x, reduction='sum')
-        recons_loss.retain_grad()
+        # recons_loss.retain_grad()
         # assert recons_loss.isnan().any() == False, print(recons_loss)
         logvar = 2 * logsd
         # assert (logvar.exp()).isinf().any() == False, print('logvar.exp nan')
         kld_loss = 0.5 * torch.sum(1 + logvar - mu ** 2 - logvar.exp())
-        kld_loss.retain_grad()
+        # kld_loss.retain_grad()
         # assert kld_loss.isnan().any() == False, print(kld_loss)
         loss = recons_loss - kld_weight * kld_loss
         return loss, recons_loss, kld_loss
