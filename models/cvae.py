@@ -1,4 +1,4 @@
-# vanilla VAE model
+# CVAE model
 # code template based on AntixK/PyTorch-VAE
 # network architecture based on cdoersch/vae_tutorial
 
@@ -7,11 +7,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .types_ import *
 from .base import BaseVAE
-class VanillaVAE(BaseVAE):
+class CVAE(BaseVAE):
     def __init__(self,
                  in_channels: int,
                  latent_dim: int = 30,
                  hidden_dims: List[int] = [1000, 500, 250],
+                 n_classes: int = 10
                  ):
         super().__init__()
 
@@ -38,7 +39,8 @@ class VanillaVAE(BaseVAE):
 
         # Decoder
         modules = []
-        decoder_layers = [latent_dim]
+        # the first layer of decoder is with addition of a class label input
+        decoder_layers = [latent_dim + n_classes]
         decoder_layers.extend(hidden_dims[::-1])
         for i in range(len(decoder_layers)-1):
             modules.append(
@@ -66,14 +68,14 @@ class VanillaVAE(BaseVAE):
         x_re = torch.sigmoid(h)
         return x_re
 
-    def forward(self, x: Tensor) -> Tuple[Tensor]:
+    def forward(self, x: Tensor, y: Tensor) -> Tuple[Tensor]:
         # assert x.isnan().any() == False, print(x)
         mu, logsd = self.encode(x)
         # assert mu.isnan().any() == False, print(mu)
         # assert logsd.isnan().any() == False, print(logsd)
         z = self.reparameterize(mu, logsd)
         # assert z.isnan().any() == False, print(z)
-        x_re = self.decode(z) 
+        x_re = self.decode(torch.cat([z,y], dim=1)) 
         # assert x_re.isnan().any() == False, print(x_re)
         return x_re, mu, logsd
     
@@ -92,6 +94,7 @@ class VanillaVAE(BaseVAE):
         loss = recons_loss + kld_weight * kld_loss
         return loss, recons_loss, kld_loss
 
+    # the following methods are provided for generation and visualization 
     @torch.no_grad()
     def sample(self,
                num_samples: int,

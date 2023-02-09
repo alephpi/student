@@ -50,7 +50,7 @@ def plot_conditional_generation(model, n=8, fix_number=None):
             z = torch.randn(8, z_dim)
             z = z.repeat(n_classes,1).to(device)
             y_onehot = torch.tensor(final).type(torch.FloatTensor).to(device)
-            out = model.decode(z,y_onehot).view(-1, 1, 28, 28)
+            out = model.decode(torch.cat([z,y_onehot], dim=1)).view(-1, 1, 28, 28)
         else:
             z = torch.randn(n, z_dim).to(device)
             y_onehot = torch.tensor(np.roll(matrix, fix_number)).type(torch.FloatTensor).to(device)
@@ -58,3 +58,4 @@ def plot_conditional_generation(model, n=8, fix_number=None):
 
     out_grid = torchvision.utils.make_grid(out).cpu()
     show(out_grid)
+    plt.savefig('./img/cond_generation.png')
