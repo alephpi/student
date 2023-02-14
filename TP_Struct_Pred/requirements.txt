@@ -1,0 +1,4 @@
+scikit-learn
+matplotlib
+torch===1.4.0
+liac-arff
