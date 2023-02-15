@@ -98,9 +98,9 @@ class FeatureNetwork(BaseModel):
                 loss += self.loss_fn(output.float(), targets.float())
 
                 # round output to 0/1
-                output_in_0_1 = output.round().int()
+                output_in_0_1 = output.detach().cpu().round().int().numpy()
 
-                f1 = compute_f1_score(targets, output_in_0_1)
+                f1 = compute_f1_score(targets.detach().cpu().numpy(), output_in_0_1)
                 for f in f1:
                     mean_f1.append(f)
 

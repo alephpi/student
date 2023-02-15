@@ -47,6 +47,7 @@ class SPENClassification(SPEN):
 
         super().__init__(model, optim, learning_rate, weight_decay, inf_lr, n_steps_inf, label_dim,
                          loss_fn, momentum, momentum_inf)
+        self.feature_extractor.to(self.device)
 
     def inference(self, x, training: bool, n_steps: int):
 
@@ -77,7 +78,7 @@ class SPENClassification(SPEN):
 
         # Max-margin Loss
         pre_loss = self.loss_fn(pred_labels, targets) - pred_energy + gt_energy
-        loss = torch.max(pre_loss, torch.zeros(pre_loss.size()))
+        loss = torch.max(pre_loss, torch.zeros(pre_loss.size()).to(self.device))
         # Take the mean over all losses of the mini batch
         loss = torch.mean(loss)
         return pred_labels, loss
