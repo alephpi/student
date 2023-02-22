@@ -50,15 +50,21 @@ class RBM(nn.Module):
 		return p.bernoulli()
 
 	def free_energy(self, v:Tensor) -> Tensor:
+		# dim 0 is batch dimension
 		v_term = torch.matmul(v, self.v_b.t())
 		print(f'v_term.shape={v_term.shape}')
 		w_x_h = F.linear(v, self.W, self.h_b)
 		print(f'w_x_h.shape={w_x_h.shape}')
+		# sum up along the dim 1
 		h_term = torch.sum(F.softplus(w_x_h), dim=1)
 		print(f'h_term.shape={h_term.shape}')
 		return torch.mean(- h_term - v_term)
 
 	def forward(self, v:Tensor):
+		'''
+		input: data point v_0
+		output: data point v_0, k-th sample in gibbs chain v_k  
+		'''
 		h = self.v_to_h(v)
 		for _ in range(self.k):
 			v_gibb = self.h_to_v(h)
