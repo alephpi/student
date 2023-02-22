@@ -16,5 +16,8 @@ def read_alpha_digit(data_file: str, labels: List[int] = None) -> np.ndarray:
 	return np.array(res)
 
 def plot_BAD(x: np.ndarray):
-	assert x.shape == (20, 16), 'Wrong format for binary alpha digits!'
+	try:
+		x = x.reshape(20,16)
+	except:
+		raise ValueError(f'cannot convert to binary alpha digits format, need to be (20,16)!')
 	plt.imshow(x, cmap='gray')

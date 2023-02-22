@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+from typing import Tuple
 class RBM(nn.Module):
 
 	def __init__(self, v_dim: int, h_dim: int, k: int) -> None:
@@ -17,6 +18,7 @@ class RBM(nn.Module):
 		self.h_b = nn.Parameter(torch.zeros(h_dim))
 		self.W = nn.Parameter(torch.empty((h_dim, v_dim)))
 		self.W.data.normal_(0, 0.1)
+		assert k > 0, f'k should be positive integer'
 		self.k = k
 
 	def v_to_h(self, v: Tensor) -> Tensor:
@@ -60,13 +62,17 @@ class RBM(nn.Module):
 		print(f'h_term.shape={h_term.shape}')
 		return torch.mean(- h_term - v_term)
 
-	def forward(self, v:Tensor):
+	def gibbs_sampling(self, v:Tensor) -> Tuple[Tensor, Tensor]:
+		h = self.v_to_h(v)
+		v_ = self.h_to_v(h)
+		return v_
+
+	def forward(self, v:Tensor) -> Tuple[Tensor, Tensor]:
 		'''
 		input: data point v_0
 		output: data point v_0, k-th sample in gibbs chain v_k  
 		'''
-		h = self.v_to_h(v)
+		v_k = v
 		for _ in range(self.k):
-			v_gibb = self.h_to_v(h)
-			h = self.v_to_h(v_gibb)
-		return v, v_gibb
+			v_k = self.gibbs_sampling(v_k)
+		return v, v_k
