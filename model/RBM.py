@@ -12,12 +12,14 @@ class RBM():
 			k: times of Gibbs sampling
 		'''
 		super().__init__()
-		self.v_b = np.zeros(v_dim)
-		self.h_b = np.zeros(h_dim)
+		self.c = np.zeros(v_dim)
+		self.b = np.zeros(h_dim)
 		self.W = np.random.normal(0, 0.1, size=(v_dim, h_dim))
 		assert k > 0, f'k should be positive integer'
 		self.k = k
 		self.lr = lr
+		self.v_dim = v_dim
+		self.h_dim = h_dim
 
 	def v_to_h(self, v: np.ndarray) -> np.ndarray:
 		# correspond to entree_sortie_RBM
@@ -30,7 +32,7 @@ class RBM():
 		Returns:
 				np.ndarray: hidden units
 		"""
-		p = sigmoid(v @ self.W + self.h_b)
+		p = sigmoid(v @ self.W + self.b)
 		samples = np.random.binomial(1, p=p)
 		return p, samples
 
@@ -46,7 +48,7 @@ class RBM():
 				np.ndarray: visible units
 		"""
 
-		p = sigmoid(h @ self.W.T + self.v_b)
+		p = sigmoid(h @ self.W.T + self.c)
 		samples = np.random.binomial(1, p=p)
 		return p, samples
 
@@ -74,13 +76,13 @@ class RBM():
 				x (np.ndarray): input data
 		"""
 		dW = v_0.T @ ph_0 - v_k.T @ ph_k
-		dv_b = (v_0 - v_k).sum(axis=0)
-		dh_b = (ph_0 - ph_k).sum(axis=0)
+		dc = (v_0 - v_k).sum(axis=0)
+		db = (ph_0 - ph_k).sum(axis=0)
 		self.W += self.lr * dW / batch_size
-		self.v_b += self.lr * dv_b / batch_size
-		self.h_b += self.lr * dh_b / batch_size
+		self.c += self.lr * dc / batch_size
+		self.b += self.lr * db / batch_size
 
-	def fit(self, data: np.ndarray, batch_size: int, num_epochs=100) -> None:
+	def fit(self, data: np.ndarray, batch_size: int, num_epochs=100, prog_bar=False) -> None:
 		"""train RBM
 
 		Args:
@@ -88,7 +90,10 @@ class RBM():
 		"""
 
 		assert data.ndim == 2, f'data should be a 2D-array.'
-		pbar = trange(num_epochs)
+		if prog_bar: 
+			pbar = trange(num_epochs)
+		else:
+			pbar = range(num_epochs)
 		x = data.copy()
 		for i in pbar:
 			np.random.shuffle(x)
@@ -99,9 +104,10 @@ class RBM():
 				self.update(v_0, ph_0, v_k, ph_k, batch_size=x_batch.shape[0])
 				loss += np.linalg.norm(v_0 - v_k, ord='fro') ** 2
 			loss /= x.size
-			pbar.set_postfix(l2_loss = loss)
+			if prog_bar:
+				pbar.set_postfix(l2_loss = loss)
 	
-	def inference(self, x: np.ndarray, n_gibbs: int) -> np.ndarray:
+	def generate(self, n_gibbs: int) -> np.ndarray:
 		"""data generation
 
 		Args:
@@ -110,7 +116,8 @@ class RBM():
 		Returns:
 				np.ndarray: generated data
 		"""
-		x_ = x
+		noise = np.random.randint(size=self.v_dim,low=0,high=2)
+		x = noise
 		for i in range(n_gibbs):
-			_, _, _, x_ = self.gibbs_sampling(x_)
-		return x_
+			_, _, _, x = self.gibbs_sampling(x)
+		return x

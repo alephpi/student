@@ -40,13 +40,11 @@ def plot_BAD(x: np.ndarray, save_to = None):
 	if save_to != None:
 		plt.savefig(save_to)
 
-def generate_image(model, n_samples: int, n_gibbs: int, shape: Tuple[int]):
+def generate_image(model, n_samples: int, n_gibbs: int):
 	"""
 	Args:
 			n_gibbs (int): number of iterations in gibbs sampling
 	"""
 	for j in range(n_samples):
-		noise = np.random.randint(size=shape,low=0,high=2)
-		x_ = noise
-		x_ = model.inference(x_,n_gibbs)
+		x_ = model.generate(n_gibbs)
 		plot_BAD(x_)
