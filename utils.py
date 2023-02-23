@@ -2,7 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import List, Tuple
 import scipy.io as sio
-import torch
+
+def sigmoid(x: np.ndarray) -> np.ndarray:
+	return 1.0 / (1.0 + np.exp(-x))
+
 def read_alpha_digit(data_file: str, labels: List[int]) -> np.ndarray:
 	"""read from Binary Alpha Digit dataset
 
@@ -42,9 +45,8 @@ def generate_image(model, n_samples: int, n_gibbs: int, shape: Tuple[int]):
 	Args:
 			n_gibbs (int): number of iterations in gibbs sampling
 	"""
-	device = model.device
 	for j in range(n_samples):
-		noise = torch.randint(size=shape,low=0,high=2, dtype=torch.float32).to(device)
-		x_ = noise.to(device)
+		noise = np.random.randint(size=shape,low=0,high=2)
+		x_ = noise
 		x_ = model.inference(x_,n_gibbs)
-		plot_BAD(x_.cpu())
+		plot_BAD(x_)

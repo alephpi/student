@@ -1,12 +1,10 @@
-# adapt from https://github.com/bacnguyencong/rbm-pytorch/blob/master/rbm.py
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch import Tensor
 from typing import Tuple
-class RBM(nn.Module):
+import numpy as np
+from tqdm import tqdm, trange
+from utils import *
+class RBM():
 
-	def __init__(self, v_dim: int, h_dim: int, k: int) -> None:
+	def __init__(self, v_dim: int, h_dim: int, k: int =1, lr=0.1) -> None:
 		'''
 		Args:
 			v_dim: dimension of visible units
@@ -14,67 +12,105 @@ class RBM(nn.Module):
 			k: times of Gibbs sampling
 		'''
 		super().__init__()
-		self.v_b = nn.Parameter(torch.zeros(v_dim))
-		self.h_b = nn.Parameter(torch.zeros(h_dim))
-		self.W = nn.Parameter(torch.empty((h_dim, v_dim)))
-		self.W.data.normal_(0, 0.1)
+		self.v_b = np.zeros(v_dim)
+		self.h_b = np.zeros(h_dim)
+		self.W = np.random.normal(0, 0.1, size=(v_dim, h_dim))
 		assert k > 0, f'k should be positive integer'
 		self.k = k
+		self.lr = lr
 
-	def v_to_h(self, v: Tensor) -> Tensor:
+	def v_to_h(self, v: np.ndarray) -> np.ndarray:
 		# correspond to entree_sortie_RBM
-		'''
+		"""
 		Sampling hidden units conditional to visible units
-		
+
 		Args:
-			v: visible units
-		
+				v (np.ndarray): visible units
+
 		Returns:
-			h: hidden units
-		'''
+				np.ndarray: hidden units
+		"""
+		p = sigmoid(v @ self.W + self.h_b)
+		samples = np.random.binomial(1, p=p)
+		return p, samples
 
-		p = torch.sigmoid(F.linear(v, self.W, self.h_b))
-		# print(p, p.bernoulli())
-		return p.bernoulli()
-
-	def h_to_v(self, h: Tensor) -> Tensor:
+	def h_to_v(self, h: np.ndarray) -> np.ndarray:
 		# correspond to sortie_entree_RBM
-		'''
+		"""
 		Sampling hidden units conditional to visible units
-		
+
 		Args:
-			h: hidden units
-		
+				h (np.ndarray): hidden units
+
 		Returns:
-			v: visible units
-		'''
+				np.ndarray: visible units
+		"""
 
-		p = torch.sigmoid(F.linear(h, self.W.T, self.v_b))
-		# print(p, p.bernoulli())
-		return p.bernoulli()
+		p = sigmoid(h @ self.W.T + self.v_b)
+		samples = np.random.binomial(1, p=p)
+		return p, samples
 
-	def free_energy(self, v:Tensor) -> Tensor:
-		# dim 0 is batch dimension
-		v_term = torch.matmul(v, self.v_b.t())
-		# print(f'v_term.shape={v_term.shape}')
-		w_x_h = F.linear(v, self.W, self.h_b)
-		# print(f'w_x_h.shape={w_x_h.shape}')
-		# sum up along the dim 1
-		h_term = torch.sum(F.softplus(w_x_h), dim=1)
-		# print(f'h_term.shape={h_term.shape}')
-		return torch.mean(- h_term - v_term)
+	def gibbs_sampling(self, v:np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+		ph, h = self.v_to_h(v)
+		pv, v = self.h_to_v(h)
+		return ph, h, pv, v
 
-	def gibbs_sampling(self, v:Tensor) -> Tuple[Tensor, Tensor]:
-		h = self.v_to_h(v)
-		v_ = self.h_to_v(h)
-		return v_
-
-	def forward(self, v:Tensor) -> Tuple[Tensor, Tensor]:
+	def forward(self, v:np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 		'''
 		input: data point v_0
 		output: data point v_0, k-th sample in gibbs chain v_k  
 		'''
-		v_k = v
+		ph_0, h_0 = self.v_to_h(v)
+		h_k = h_0
 		for _ in range(self.k):
-			v_k = self.gibbs_sampling(v_k)
-		return v, v_k
+			pv_k, v_k = self.h_to_v(h_k)
+			ph_k, h_k = self.v_to_h(v_k)
+		return v, ph_0, v_k, ph_k
+	
+	def update(self, v_0: np.ndarray, ph_0: np.ndarray, v_k: np.ndarray, ph_k: np.ndarray, batch_size: int) -> None:
+		"""weight update
+
+		Args:
+				x (np.ndarray): input data
+		"""
+		dW = v_0.T @ ph_0 - v_k.T @ ph_k
+		dv_b = (v_0 - v_k).sum(axis=0)
+		dh_b = (ph_0 - ph_k).sum(axis=0)
+		self.W += self.lr * dW / batch_size
+		self.v_b += self.lr * dv_b / batch_size
+		self.h_b += self.lr * dh_b / batch_size
+
+	def fit(self, data: np.ndarray, batch_size: int, num_epochs=100) -> None:
+		"""train RBM
+
+		Args:
+				data (np.ndarray): 2D array (n_samples, n_features)
+		"""
+
+		assert data.ndim == 2, f'data should be a 2D-array.'
+		pbar = trange(num_epochs)
+		x = data.copy()
+		for i in pbar:
+			np.random.shuffle(x)
+			loss = 0
+			for batch in range(0, x.shape[0], batch_size):
+				x_batch = x[batch: batch+batch_size, :]
+				v_0, ph_0, v_k, ph_k = self.forward(x_batch)
+				self.update(v_0, ph_0, v_k, ph_k, batch_size=x_batch.shape[0])
+				loss += np.linalg.norm(v_0 - v_k, ord='fro') ** 2
+			loss /= x.size
+			pbar.set_postfix(l2_loss = loss)
+	
+	def inference(self, x: np.ndarray, n_gibbs: int) -> np.ndarray:
+		"""data generation
+
+		Args:
+				n_gibbs (int): iteration times of gibbs sampling
+
+		Returns:
+				np.ndarray: generated data
+		"""
+		x_ = x
+		for i in range(n_gibbs):
+			_, _, _, x_ = self.gibbs_sampling(x_)
+		return x_
