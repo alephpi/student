@@ -1,23 +1,50 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List
+from typing import List, Tuple
 import scipy.io as sio
-def read_alpha_digit(data_file: str, labels: List[int] = None) -> np.ndarray:
-	'''
-	data_file: file path where binary alpha digits stores
-	characters: list of characters that we want to extract from the dataset
+import torch
+def read_alpha_digit(data_file: str, labels: List[int]) -> np.ndarray:
+	"""read from Binary Alpha Digit dataset
 
 	BAD dataset contains 39 different sample binary images of size (20,16) for 26 letters & 10 digits
 
-	Return: a 2d array (36, 39 * 20 * 16)
-	'''
-	mat = sio.loadmat(data_file)
-	res = [mat['dat'][char][i].flatten() for char in labels for i in range(39)]
-	return np.array(res)
+	Args:
+			data_file (str): file path where binary alpha digits stores
+			labels (List[int]): list of characters that we want to extract from the dataset. 
 
-def plot_BAD(x: np.ndarray):
+	Returns:
+			np.ndarray: a 2d array (num_labels, 39 * 20 * 16) 
+	"""
+
+	# Return: 
+	# '''
+	mat = sio.loadmat(data_file)
+	x = []
+	y = []
+	for char in labels:
+		for i in range(39):
+			x.append(mat['dat'][char][i].flatten())
+			y.append(char)
+	return np.array(x), np.array(y) 
+
+def plot_BAD(x: np.ndarray, save_to = None):
 	try:
 		x = x.reshape(20,16)
 	except:
 		raise ValueError(f'cannot convert to binary alpha digits format, need to be (20,16)!')
-	plt.imshow(x, cmap='gray')
+	plt.figure(figsize=(1,1))
+	plt.imshow(x, cmap='gray', aspect='auto')
+	if save_to != None:
+		plt.savefig(save_to)
+
+def generate_image(model, n_samples: int, n_gibbs: int, shape: Tuple[int]):
+	"""
+	Args:
+			n_gibbs (int): number of iterations in gibbs sampling
+	"""
+	device = model.device
+	for j in range(n_samples):
+		noise = torch.randint(size=shape,low=0,high=2, dtype=torch.float32).to(device)
+		x_ = noise.to(device)
+		x_ = model.inference(x_,n_gibbs)
+		plot_BAD(x_.cpu())
