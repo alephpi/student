@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 import numpy as np
 from tqdm import tqdm, trange
 from utils import *
@@ -81,7 +81,7 @@ class RBM():
 		self.c += lr * dc / batch_size
 		self.b += lr * db / batch_size
 
-	def fit(self, data: np.ndarray, batch_size: int = 8, num_epochs=100, k: int =1, lr: int = 0.1, prog_bar=False) -> None:
+	def fit(self, data: np.ndarray, batch_size: int = 8, num_epochs=100, k: int =1, lr: int = 0.1, prog_bar_index=None):
 		"""train RBM
 
 		Args:
@@ -90,10 +90,7 @@ class RBM():
 		"""
 
 		assert data.ndim == 2, f'data should be a 2D-array.'
-		if prog_bar: 
-			pbar = trange(num_epochs)
-		else:
-			pbar = range(num_epochs)
+		pbar = trange(num_epochs, desc=prog_bar_index, unit='epochs')
 		x = data.copy()
 		for i in pbar:
 			np.random.shuffle(x)
@@ -104,8 +101,7 @@ class RBM():
 				self.update(v_0, ph_0, v_k, ph_k, batch_size=x_batch.shape[0], lr=lr)
 				loss += np.linalg.norm(v_0 - v_k, ord='fro') ** 2
 			loss /= x.size
-			if prog_bar:
-				pbar.set_postfix(l2_loss = loss)
+			pbar.set_postfix(l2_loss = loss)
 	
 	def generate(self, n_gibbs: int) -> np.ndarray:
 		"""data generation

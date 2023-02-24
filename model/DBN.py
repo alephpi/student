@@ -32,9 +32,10 @@ class DBN():
 
 		assert data.ndim == 2, f'data should be a 2D-array.'
 		x = data.copy()
-		for rbm in tqdm(self.rbms, desc='layer'):
-			rbm.fit(x, batch_size=batch_size, num_epochs=num_epochs, k=k, lr=lr)
+		for i, rbm in enumerate(self.rbms):
+			rbm.fit(x, batch_size=batch_size, num_epochs=num_epochs, k=k, lr=lr, prog_bar_index = f'layer {i}')
 			_, x = rbm.v_to_h(x)
+
 	
 	def generate(self, n_gibbs: int) -> np.ndarray:
 		"""data generation
