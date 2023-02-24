@@ -4,20 +4,19 @@ from tqdm import tqdm, trange
 from utils import *
 class RBM():
 
-	def __init__(self, v_dim: int, h_dim: int, k: int =1, lr=0.1) -> None:
-		'''
+	def __init__(self, v_dim: int, h_dim: int, k: int =1) -> None:
+		"""
 		Args:
-			v_dim: dimension of visible units
-			h_dim: dimension of hidden units
-			k: times of Gibbs sampling
-		'''
+				v_dim (int): dimension of visible layer
+				h_dims (List[int]): dimensions of hidden layers
+				lr (float, optional): learning rate. Defaults to 0.1.
+		"""
 		super().__init__()
 		self.c = np.zeros(v_dim)
 		self.b = np.zeros(h_dim)
 		self.W = np.random.normal(0, 0.1, size=(v_dim, h_dim))
 		assert k > 0, f'k should be positive integer'
 		self.k = k
-		self.lr = lr
 		self.v_dim = v_dim
 		self.h_dim = h_dim
 
@@ -57,19 +56,19 @@ class RBM():
 		pv, v = self.h_to_v(h)
 		return ph, h, pv, v
 
-	def forward(self, v:np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+	def forward(self, v:np.ndarray, k:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 		'''
 		input: data point v_0
 		output: data point v_0, k-th sample in gibbs chain v_k  
 		'''
 		ph_0, h_0 = self.v_to_h(v)
 		h_k = h_0
-		for _ in range(self.k):
+		for _ in range(k):
 			pv_k, v_k = self.h_to_v(h_k)
 			ph_k, h_k = self.v_to_h(v_k)
 		return v, ph_0, v_k, ph_k
 	
-	def update(self, v_0: np.ndarray, ph_0: np.ndarray, v_k: np.ndarray, ph_k: np.ndarray, batch_size: int) -> None:
+	def update(self, v_0: np.ndarray, ph_0: np.ndarray, v_k: np.ndarray, ph_k: np.ndarray, batch_size: int, lr: int) -> None:
 		"""weight update
 
 		Args:
@@ -78,15 +77,16 @@ class RBM():
 		dW = v_0.T @ ph_0 - v_k.T @ ph_k
 		dc = (v_0 - v_k).sum(axis=0)
 		db = (ph_0 - ph_k).sum(axis=0)
-		self.W += self.lr * dW / batch_size
-		self.c += self.lr * dc / batch_size
-		self.b += self.lr * db / batch_size
+		self.W += lr * dW / batch_size
+		self.c += lr * dc / batch_size
+		self.b += lr * db / batch_size
 
-	def fit(self, data: np.ndarray, batch_size: int, num_epochs=100, prog_bar=False) -> None:
+	def fit(self, data: np.ndarray, batch_size: int = 8, num_epochs=100, k: int =1, lr: int = 0.1, prog_bar=False) -> None:
 		"""train RBM
 
 		Args:
 				data (np.ndarray): 2D array (n_samples, n_features)
+				k (int): times of Gibbs sampling in Contrastive Divengence learning
 		"""
 
 		assert data.ndim == 2, f'data should be a 2D-array.'
@@ -100,8 +100,8 @@ class RBM():
 			loss = 0
 			for batch in range(0, x.shape[0], batch_size):
 				x_batch = x[batch: batch+batch_size, :]
-				v_0, ph_0, v_k, ph_k = self.forward(x_batch)
-				self.update(v_0, ph_0, v_k, ph_k, batch_size=x_batch.shape[0])
+				v_0, ph_0, v_k, ph_k = self.forward(x_batch, k=k)
+				self.update(v_0, ph_0, v_k, ph_k, batch_size=x_batch.shape[0], lr=lr)
 				loss += np.linalg.norm(v_0 - v_k, ord='fro') ** 2
 			loss /= x.size
 			if prog_bar:
