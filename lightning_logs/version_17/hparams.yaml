@@ -1,0 +1,7 @@
+h_dims:
+- 700
+- 700
+pretrain: false
+lr: 0.001
+batch_size: 128
+data_size: 60000
