@@ -8,9 +8,9 @@ v_dim = 784 # 28 * 28
 
 def do_experiment(h_dims, pretrain, data_size, save_pretrain_path='./pretrained/'):
 	print(f'do experiment on h_dims={h_dims}, pretrain={pretrain}, data_size={data_size}')
-	dnn = MNISTDNN(h_dims=h_dims, pretrain=pretrain, data_dir='./data', data_size=data_size, save_pretrain_path=save_pretrain_path, load_pretrain_path='./pretrained/')
+	dnn = MNISTDNN(h_dims=h_dims, pretrain=pretrain, data_dir='./data', data_size=data_size, save_pretrain_path=save_pretrain_path)
 	logger = CSVLogger('.')
-	trainer = Trainer(logger=logger, max_epochs=20, accelerator='gpu', enable_progress_bar=True)
+	trainer = Trainer(logger=logger, max_epochs=200, accelerator='gpu', enable_progress_bar=True)
 	trainer.fit(dnn)
 	trainer.test(dnn)
 
@@ -35,15 +35,15 @@ def do_experiment_on_layer_width():
 	do_experiment(h_dims=[700,700],pretrain=False, data_size=60000)
 
 def do_experiment_on_data_size():
-	do_experiment(h_dims=[200,200],pretrain=True, data_size=1000, save_pretrain_path='./pretrained/1000/')
+	do_experiment(h_dims=[200,200],pretrain=True, data_size=1000, save_pretrain_path='./pretrained/')
 	do_experiment(h_dims=[200,200],pretrain=False, data_size=1000)
-	do_experiment(h_dims=[200,200],pretrain=True, data_size=3000, save_pretrain_path='./pretrained/3000/')
+	do_experiment(h_dims=[200,200],pretrain=True, data_size=3000, save_pretrain_path='./pretrained/')
 	do_experiment(h_dims=[200,200],pretrain=False, data_size=3000)
-	do_experiment(h_dims=[200,200],pretrain=True, data_size=7000, save_pretrain_path='./pretrained/7000/')
+	do_experiment(h_dims=[200,200],pretrain=True, data_size=7000, save_pretrain_path='./pretrained/')
 	do_experiment(h_dims=[200,200],pretrain=False, data_size=7000)
-	do_experiment(h_dims=[200,200],pretrain=True, data_size=10000, save_pretrain_path='./pretrained/10000/')
+	do_experiment(h_dims=[200,200],pretrain=True, data_size=10000, save_pretrain_path='./pretrained/')
 	do_experiment(h_dims=[200,200],pretrain=False, data_size=10000)
-	do_experiment(h_dims=[200,200],pretrain=True, data_size=30000, save_pretrain_path='./pretrained/30000/')
+	do_experiment(h_dims=[200,200],pretrain=True, data_size=30000, save_pretrain_path='./pretrained/')
 	do_experiment(h_dims=[200,200],pretrain=False, data_size=30000)
 
 if __name__ == '__main__':

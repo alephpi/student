@@ -66,9 +66,9 @@ class MNISTDNN(pl.LightningModule):
 		self.val_acc = Accuracy(task='multiclass', num_classes=num_classes)
 		self.test_acc = Accuracy(task='multiclass', num_classes=num_classes)
 		if self.pretrain:
-			self.save_hyperparameters(ignore=['num_features', 'num_classes', 'data_dir', 'save_pretrain_path', 'load_pretrain_path'])
+			self.save_hyperparameters(ignore=['num_features', 'num_classes', 'data_dir', 'save_pretrain_path'])
 		else:
-			self.save_hyperparameters(ignore=['num_features', 'num_classes', 'data_dir', 'pretrain_lr', 'pretrain_epochs', 'save_pretrain_path', 'load_pretrain_path'])
+			self.save_hyperparameters(ignore=['num_features', 'num_classes', 'data_dir', 'pretrain_lr', 'pretrain_epochs', 'save_pretrain_path'])
 		
 		self.load_data()
 		self.setup_pretrain()
