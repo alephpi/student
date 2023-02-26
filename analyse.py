@@ -1,13 +1,13 @@
 
+import logging
 from utils import *
 from model.MNISTDNN import MNISTDNN
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import CSVLogger
 # # Hyperparameters
 v_dim = 784 # 28 * 28
-
 def do_experiment(h_dims, pretrain, data_size, save_pretrain_path='./pretrained/'):
-	print(f'do experiment on h_dims={h_dims}, pretrain={pretrain}, data_size={data_size}')
+	logging.info(f'do experiment on h_dims={h_dims}, pretrain={pretrain}, data_size={data_size}')
 	dnn = MNISTDNN(h_dims=h_dims, pretrain=pretrain, data_dir='./data', data_size=data_size, save_pretrain_path=save_pretrain_path)
 	logger = CSVLogger('.')
 	trainer = Trainer(logger=logger, max_epochs=200, accelerator='gpu', enable_progress_bar=True)
@@ -47,6 +47,7 @@ def do_experiment_on_data_size():
 	do_experiment(h_dims=[200,200],pretrain=False, data_size=30000)
 
 if __name__ == '__main__':
+	logging.basicConfig(filename='analyse.log', encoding='utf-8', level=logging.INFO, format='%(asctime)s %(message)s')
 	do_experiment_on_data_size()
 	do_experiment_on_layer_width()
 	do_experiment_on_layer_depth()
