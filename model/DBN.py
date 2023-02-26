@@ -15,6 +15,7 @@ class DBN():
 
 		super().__init__()
 		assert h_dims != [], f'h_dims should at least contains one element'
+		self.h_dims = h_dims
 		self.rbms: list[RBM] = []
 		self.rbms.append(RBM(v_dim=v_dim, h_dim=h_dims[0]))
 		for i in range(len(h_dims)-1):

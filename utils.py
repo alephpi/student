@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
 import scipy.io as sio
-from torchvision.datasets import VisionDataset
 from torch import Tensor
+from model.RBM import RBM
+from model.DBN import DBN
 
 class ThresholdTransform:
 	def __init__(self, thr=0.5) -> None:
@@ -42,27 +43,21 @@ def read_alpha_digit(data_file: str, labels: List[int]) -> np.ndarray:
 			y.append(char)
 	return np.array(x), np.array(y) 
 
-def plot_BAD(x: np.ndarray, save_to = None):
-	try:
-		x = x.reshape(20,16)
-	except:
-		raise ValueError(f'cannot convert to binary alpha digits format, need to be (20,16)!')
-	plt.figure(figsize=(1,1))
+def plot_BAD(x: np.ndarray):
 	plt.imshow(x, cmap='gray', aspect='auto')
-	if save_to != None:
-		plt.savefig(save_to)
 
 def generate_image(model, n_samples: int, n_gibbs: int):
 	"""
 	Args:
 			n_gibbs (int): number of iterations in gibbs sampling
 	"""
+	fig, ax = plt.subplots(1, n_samples,figsize=(n_samples, 1.25))
 	for j in range(n_samples):
 		x_ = model.generate(n_gibbs)
-		plot_BAD(x_)
-
-def torch_dataset_to_numpy(dataset: VisionDataset) -> np.ndarray:
-	res = []
-	for data in dataset:
-		res.append(data[0].numpy().flatten())
-	return np.asarray(res)
+		ax[j].imshow(x_.reshape(20,16), cmap='gray', aspect='auto')
+		ax[j].set_xticks([])
+		ax[j].set_yticks([])
+		ax[j].set_xticklabels([])
+		ax[j].set_yticklabels([])
+	return fig
+	
