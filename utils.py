@@ -1,10 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List, Tuple
+from typing import List
 import scipy.io as sio
+from torchvision.datasets import VisionDataset
+from torch import Tensor
+
+class ThresholdTransform:
+	def __init__(self, thr=0.5) -> None:
+		self.thr = thr
+	def __call__(self, x: Tensor):
+		return (x > self.thr).to(x.dtype)
 
 def sigmoid(x: np.ndarray) -> np.ndarray:
 	return 1.0 / (1.0 + np.exp(-x))
+
+def softmax(x: np.ndarray) -> np.ndarray:
+	"""Compute softmax values for each sets of scores in x."""
+	return np.exp(x) / np.sum(np.exp(x), axis=0)
 
 def read_alpha_digit(data_file: str, labels: List[int]) -> np.ndarray:
 	"""read from Binary Alpha Digit dataset
@@ -48,3 +60,9 @@ def generate_image(model, n_samples: int, n_gibbs: int):
 	for j in range(n_samples):
 		x_ = model.generate(n_gibbs)
 		plot_BAD(x_)
+
+def torch_dataset_to_numpy(dataset: VisionDataset) -> np.ndarray:
+	res = []
+	for data in dataset:
+		res.append(data[0].numpy().flatten())
+	return np.asarray(res)

@@ -1,6 +1,4 @@
-from typing import Tuple
 import numpy as np
-from tqdm import tqdm, trange
 from utils import *
 from .RBM import RBM
 class DBN():
@@ -21,7 +19,6 @@ class DBN():
 		self.rbms.append(RBM(v_dim=v_dim, h_dim=h_dims[0]))
 		for i in range(len(h_dims)-1):
 			self.rbms.append(RBM(v_dim=h_dims[i], h_dim=h_dims[i+1]))
-		self.num_layers = len(self.rbms)
 
 	def fit(self, data: np.ndarray, batch_size: int, num_epochs=100, k: int = 1, lr: int = 0.1) -> None:
 		"""train DBF layerwisely
@@ -31,10 +28,9 @@ class DBN():
 		"""
 
 		assert data.ndim == 2, f'data should be a 2D-array.'
-		x = data.copy()
 		for i, rbm in enumerate(self.rbms):
-			rbm.fit(x, batch_size=batch_size, num_epochs=num_epochs, k=k, lr=lr, prog_bar_index = f'layer {i}')
-			_, x = rbm.v_to_h(x)
+			rbm.fit(data, batch_size=batch_size, num_epochs=num_epochs, k=k, lr=lr, prog_bar_index = f'layer {i}')
+			_, data = rbm.v_to_h(data)
 
 	
 	def generate(self, n_gibbs: int) -> np.ndarray:

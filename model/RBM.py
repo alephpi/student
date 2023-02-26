@@ -1,6 +1,6 @@
-from typing import Optional, Tuple
+from typing import Tuple
 import numpy as np
-from tqdm import tqdm, trange
+from tqdm import trange
 from utils import *
 class RBM():
 
@@ -91,16 +91,14 @@ class RBM():
 
 		assert data.ndim == 2, f'data should be a 2D-array.'
 		pbar = trange(num_epochs, desc=prog_bar_index, unit='epochs')
-		x = data.copy()
 		for i in pbar:
-			np.random.shuffle(x)
 			loss = 0
-			for batch in range(0, x.shape[0], batch_size):
-				x_batch = x[batch: batch+batch_size, :]
+			for batch in range(0, data.shape[0], batch_size):
+				x_batch = data[batch: batch+batch_size, :]
 				v_0, ph_0, v_k, ph_k = self.forward(x_batch, k=k)
 				self.update(v_0, ph_0, v_k, ph_k, batch_size=x_batch.shape[0], lr=lr)
-				loss += np.linalg.norm(v_0 - v_k, ord='fro') ** 2
-			loss /= x.size
+				loss += ((v_0 - v_k) ** 2).sum()
+			loss /= data.size
 			pbar.set_postfix(l2_loss = loss)
 	
 	def generate(self, n_gibbs: int) -> np.ndarray:
