@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 import pickle
 import torch
@@ -24,7 +25,6 @@ class MNISTDNN(pl.LightningModule):
 				data_size: int = 60000,
 				pretrain_lr = 0.1,
 				pretrain_epochs=100,
-				load_pretrain_path: str = None,
 				save_pretrain_path:str = None) -> None:
 
 
@@ -71,7 +71,7 @@ class MNISTDNN(pl.LightningModule):
 			self.save_hyperparameters(ignore=['num_features', 'num_classes', 'data_dir', 'pretrain_lr', 'pretrain_epochs', 'save_pretrain_path', 'load_pretrain_path'])
 		
 		self.load_data()
-		self.setup_pretrain(load_from=load_pretrain_path)
+		self.setup_pretrain()
 		
 	def forward(self, x: torch.Tensor):
 		return self.dnn(x)
@@ -81,27 +81,29 @@ class MNISTDNN(pl.LightningModule):
 		return optimizer
 
 	# before training with backprop, decide if perform pretraining
-	def setup_pretrain(self, load_from=None) -> None:
+	def setup_pretrain(self) -> None:
 		if self.pretrain:
-			if load_from is not None:
-				path = load_from + "dbn_pretrained_" + '_'.join([str(i) for i in self.h_dims]) +".pkl"
+			if self.save_pretrain_path is not None:
+				directory = self.save_pretrain_path + str(self.data_size) + "/"
+				Path(directory).mkdir(parents=True, exist_ok=True)
+				filename = "dbn_pretrained_" + '_'.join([str(i) for i in self.h_dims]) +".pkl"
+				path = directory + filename
 				try:
 					with open(path, "rb") as f:
 						self.dbn = pickle.load(f)
 					print('load pretrained model')
 				except:
 					print(f'pretrained model not found in {path}, pretraining a new one')
-					self._pretrain()
+					self._pretrain(path)
 			else:
-				self._pretrain()
+				self._pretrain(path)
 		self.dnn = DNN(self.dbn, self.num_classes)
 	
-	def _pretrain(self):
+	def _pretrain(self, path):
 		print('pretraining...')
 		data = ThresholdTransform(thr=127)(self.mnist_train.data[:self.data_size])
 		data = data.reshape(-1, self.num_features).numpy()
 		self.dbn.fit(data=data, batch_size=self.batch_size, num_epochs=self.pretrain_epochs, lr=self.pretrain_lr)
-		path = self.save_pretrain_path + "dbn_pretrained_" + '_'.join([str(i) for i in self.h_dims]) +".pkl"
 		with open(path, "wb") as f:
 				pickle.dump(self.dbn, f)
 		print(f'pretrained model saved to {path}')
