@@ -14,7 +14,8 @@ def preprocess(x, scale, bias, bins, noise=False):
 
     if noise == True:
         if bins == 2:
-            x = x + torch.zeros_like(x).uniform_(-0.5, 0.5)
+            # x = x + torch.zeros_like(x).uniform_(-0.5, 0.5)
+            x = x + torch.normal(mean=torch.zeros_like(x), std=torch.ones_like(x) * 0.3)
         else:
             x = x + torch.zeros_like(x).uniform_(0, 1/bins)
     return x
