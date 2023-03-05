@@ -50,7 +50,7 @@ def convert_to_img(y):
     B,C,H,W = y.size()
     imgs = list()
     for i in range(B):
-        label_i = skimage.color.label2rgb(seg[i], colors=colors)
+        label_i = skimage.color.label2rgb(seg[i], colors=colors, bg_label=-1)
         label_i = skimage.util.img_as_ubyte(label_i)
         imgs.append(transform(label_i))
     return imgs, seg
@@ -101,7 +101,3 @@ class HorseDataset(data.Dataset):
             lbl = lbl.repeat(self.n_c,1,1)
 
         return {"x":img, "y":lbl}
-
-
-
-
