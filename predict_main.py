@@ -48,6 +48,8 @@ if __name__ == "__main__":
 
     # model
     model = CondGlowModel(args)
+    if cuda:
+        model = model.cuda()
     state = utils.load_state(args.model_path, cuda)
     model.load_state_dict(state["model"])
     del state
@@ -57,4 +59,3 @@ if __name__ == "__main__":
 
     # predict
     predictor.sampled_based_prediction(args.num_samples)
-
