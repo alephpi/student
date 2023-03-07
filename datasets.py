@@ -61,20 +61,20 @@ class HorseDataset(data.Dataset):
 
     def __init__(self, dir, size, n_c, portion="train"):
         self.dir = dir
-        self.names = self.read_names(dir, portion)
+        self.names = self.read_names(portion)
         self.n_c = n_c
         self.size = size
 
-    def read_names(self, dir, portion):
+    def read_names(self, portion):
 
-        path = os.path.join(dir, "{}.txt".format(portion))
+        path = os.path.join(self.dir, "{}.txt".format(portion))
         names = list()
         with open(path, "r") as f:
             for line in f:
                 line = line.strip()
                 name = {}
-                name["img"] = os.path.join(dir, os.path.join("images", line))
-                name["lbl"] = os.path.join(dir, os.path.join("labels", line))
+                name["img"] = os.path.join(self.dir, os.path.join("images", line))
+                name["lbl"] = os.path.join(self.dir, os.path.join("labels", line))
                 names.append(name)
         return names
 
