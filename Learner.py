@@ -59,7 +59,7 @@ class Trainer(object):
         self.validset_loader = DataLoader(validset,
                                       batch_size=self.batch_size,
                                       shuffle=False,
-                                      drop_last=False)
+                                      drop_last=True)
 
         self.num_epochs = args.num_epochs
         self.global_step = args.num_steps
