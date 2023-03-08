@@ -4,8 +4,6 @@ import numpy as np
 
 def svg2png(load, save, h=128, w=128):
     cairosvg.svg2png(url=load, write_to=save, output_height=h, output_width=w)
-svg2png('sample.svg', 'sample.png')
-
 
 def png_bk_color(load, save):
     f = Image.open(load) 
