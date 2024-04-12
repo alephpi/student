@@ -85,16 +85,22 @@ attach([X|H],Y,[X|Z]) :-
     attach(H,Y,Z).
 
 assemble(L1,L2,L3,Result) :-
-    attach(L1, L2, L1L2),
-    attach(L1L2, L3, Result).
+    attach(L1L2, L3, Result),
+    attach(L1, L2, L1L2).
 % reversible but will overflow after 
 % X = [1, 2, 3, 4, 5, 6],
 % Y = Z, Z = [] ;
 
-sub_list(IncludedList, IncludingList) :-
-    attach(IncludedList, _, IncludingList);
-    sub_list([_|IncludedList], IncludingList).
+% sub_list(IncludedList, IncludingList) :-
+%     attach(IncludedList, _, IncludingList);
+%     sub_list([_|IncludedList], IncludingList).
 % return true when it is a sublist but infinity loop when not a sublist.
+
+sub_list(IncludedList, IncludingList) :-
+    attach(IncludedList, _, IncludingList).
+
+sub_list(IncludedList, [_|IncludingList]) :-
+    sub_list(IncludedList, IncludingList).
 
 % operators
 % test :-

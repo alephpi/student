@@ -15,7 +15,7 @@ fog.
 empty(Predicate) :-
     retract(Predicate),
     % force backtracking to retract the other Predicate till retract return false.
-    fail;
+    fail.
 
 % base case always return true.
 empty(_).
