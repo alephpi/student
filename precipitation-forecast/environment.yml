@@ -1,0 +1,17 @@
+name: precipitation-forecast
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - scipy
+  - pandas>=0.23
+  - scikit-learn>=0.20
+  - matplotlib
+  - joblib
+
+  - pip
+  - pip:
+      - ramp-workflow
+      - h5py
+      - tensorflow
+      # - osfclient
