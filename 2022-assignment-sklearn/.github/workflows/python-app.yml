@@ -1,0 +1,97 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Assignment Validation
+
+on:
+  push:
+    branches:
+      - 'main'
+
+  pull_request:
+
+jobs:
+  test:
+    name: Test Code
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Test with pytest
+      run: pytest -v
+
+  flake8:
+    name: Check code style
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        pip install flake8
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --max-complexity=10 --max-line-length=80 --statistics
+
+  check-doc:
+    name: Check doc style
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        pip install pydocstyle
+    - name: Check doc style with pydocstyle
+      run: pydocstyle
+
+  check-changed-files:
+    name: Check PR state
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get added files
+      id: changed-files
+      uses: tj-actions/changed-files@v13.1
+    - name: Check no added files
+      run: |
+        # Check that no file was added in the repo
+        added_files=${{ steps.changed-files.outputs.added_files }}
+        if [[ ! -z "$added_files" ]]; then
+          echo "Do not add unrelated files in pull requests."
+          echo "Please remove: '$added_files'."
+          exit 1
+        fi
+    - name: Get modified files
+      id: modified-files
+      uses: tj-actions/changed-files@v13.1
+      with:
+        files: |
+          test_*
+          .github/**
+    - name: Check tests not modified
+      run: |
+        # Check that no file was added in the repo
+        any_modified=${{ steps.modified-files.outputs.any_modified }}
+        all_modified_files=${{ steps.modified-files.outputs.all_modified_files }}
+        if [[ $any_modified == "true" ]]; then
+          echo "Do not modify test files: '$all_modified_files'"
+          exit 1
+        fi
