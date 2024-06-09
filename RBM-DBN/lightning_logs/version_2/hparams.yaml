@@ -1,0 +1,9 @@
+h_dims:
+- 200
+- 200
+pretrain: true
+lr: 0.001
+batch_size: 128
+data_size: 3000
+pretrain_lr: 0.1
+pretrain_epochs: 100
